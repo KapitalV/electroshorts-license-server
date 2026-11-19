@@ -186,6 +186,8 @@ def health() -> Dict[str, Any]:
             "has_hash_pepper": bool(hash_pepper),
             "has_receipt_private_key": bool(receipt_key),
             "receipt_key_length": len(receipt_key),
+            "receipt_key_first4": receipt_key[:4] if receipt_key else None,
+            "receipt_key_last4": receipt_key[-4:] if receipt_key else None,
             "receipt_signing_error": receipt_signing_error,
             "config_error": config_error,
         },
