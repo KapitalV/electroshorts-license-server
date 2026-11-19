@@ -16,7 +16,7 @@ OFFLINE_SECONDS = 7 * 86400
 
 
 def signing_key() -> Ed25519PrivateKey:
-    encoded = os.environ.get("LICENSE_RECEIPT_PRIVATE_KEY", "").strip()
+    encoded = os.environ.get("LICENSE_RECEIPT_PRIVATE_KEY", "").strip().strip("\"'").strip()
     try:
         return Ed25519PrivateKey.from_private_bytes(base64.b64decode(encoded, validate=True))
     except (ValueError, TypeError) as exc:

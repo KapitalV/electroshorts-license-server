@@ -51,7 +51,7 @@ def generate_license_key() -> str:
 def hash_license_key(value: str) -> str:
     """Hash a canonical key with an optional server-only pepper."""
     normalized = normalize_license_key(value)
-    pepper = os.environ.get("LICENSE_KEY_HASH_PEPPER", "")
+    pepper = os.environ.get("LICENSE_KEY_HASH_PEPPER", "").strip().strip("\"'").strip()
     return hashlib.sha256(f"{pepper}\0{normalized}".encode("utf-8")).hexdigest()
 
 

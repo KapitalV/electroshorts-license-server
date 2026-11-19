@@ -57,7 +57,7 @@ def _utc(value: Optional[datetime]) -> Optional[str]:
 
 
 def _admin_guard(authorization: Optional[str], x_admin_token: Optional[str]) -> None:
-    expected = os.environ.get("LICENSE_ADMIN_TOKEN", "").strip()
+    expected = os.environ.get("LICENSE_ADMIN_TOKEN", "").strip().strip("\"'").strip()
     if not expected:
         raise HTTPException(status_code=503, detail="License admin token is not configured.")
     supplied = x_admin_token or ""
@@ -152,10 +152,35 @@ def _reject_public_license(payload: DeviceRequest) -> None:
 
 @app.get("/health")
 def health() -> Dict[str, Any]:
+    url = os.environ.get("SUPABASE_URL", "").strip().strip("\"'").strip()
+    secret_key = (os.environ.get("SUPABASE_SECRET_KEY", "").strip().strip("\"'").strip()
+                  or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip().strip("\"'").strip())
+    admin_token = os.environ.get("LICENSE_ADMIN_TOKEN", "").strip().strip("\"'").strip()
+    hash_pepper = os.environ.get("LICENSE_KEY_HASH_PEPPER", "").strip().strip("\"'").strip()
+    receipt_key = os.environ.get("LICENSE_RECEIPT_PRIVATE_KEY", "").strip().strip("\"'").strip()
+
+    config_error = None
+    try:
+        SupabaseLicenseRepository.from_env()
+        configured = True
+    except Exception as exc:
+        configured = False
+        config_error = str(exc)
+
     return {
         "status": "ok",
         "service": "electroshorts-license-api",
-        "supabase_configured": SupabaseLicenseRepository.is_configured(),
+        "supabase_configured": configured,
+        "diagnostics": {
+            "has_supabase_url": bool(url),
+            "supabase_url_domain": url.split("//")[-1].split("/")[0] if url else None,
+            "has_supabase_key": bool(secret_key),
+            "supabase_key_prefix": secret_key[:10] if secret_key else None,
+            "has_admin_token": bool(admin_token),
+            "has_hash_pepper": bool(hash_pepper),
+            "has_receipt_private_key": bool(receipt_key),
+            "config_error": config_error,
+        },
     }
 
 

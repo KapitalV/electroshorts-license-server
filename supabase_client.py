@@ -54,9 +54,9 @@ class SupabaseLicenseRepository:
 
     @classmethod
     def from_env(cls) -> "SupabaseLicenseRepository":
-        url = os.environ.get("SUPABASE_URL", "").strip()
-        key = (os.environ.get("SUPABASE_SECRET_KEY", "").strip()
-               or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip())
+        url = os.environ.get("SUPABASE_URL", "").strip().strip("\"'").strip()
+        key = (os.environ.get("SUPABASE_SECRET_KEY", "").strip().strip("\"'").strip()
+               or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip().strip("\"'").strip())
         if not url or not key:
             raise SupabaseError("SUPABASE_URL and SUPABASE_SECRET_KEY (or legacy SUPABASE_SERVICE_ROLE_KEY) must be configured.")
         return cls(url, key)
