@@ -1,0 +1,2 @@
+"""ElectroShorts license API service."""
+
