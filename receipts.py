@@ -17,10 +17,15 @@ OFFLINE_SECONDS = 7 * 86400
 
 def signing_key() -> Ed25519PrivateKey:
     encoded = os.environ.get("LICENSE_RECEIPT_PRIVATE_KEY", "").strip().strip("\"'").strip()
+    if not encoded:
+        raise RuntimeError("LICENSE_RECEIPT_PRIVATE_KEY environment variable is empty.")
     try:
-        return Ed25519PrivateKey.from_private_bytes(base64.b64decode(encoded, validate=True))
-    except (ValueError, TypeError) as exc:
-        raise RuntimeError("License receipt signing key is not configured correctly.") from exc
+        raw = base64.b64decode(encoded, validate=False)
+        if len(raw) != 32:
+            raise ValueError(f"Key length is {len(raw)} bytes, expected 32 bytes.")
+        return Ed25519PrivateKey.from_private_bytes(raw)
+    except Exception as exc:
+        raise RuntimeError(f"License receipt signing key is invalid: {exc}") from exc
 
 
 def sign_receipt(license_data: Dict[str, Any], device: Any, key: Ed25519PrivateKey) -> Dict[str, str]:

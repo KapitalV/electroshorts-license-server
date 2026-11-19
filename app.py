@@ -167,6 +167,12 @@ def health() -> Dict[str, Any]:
         configured = False
         config_error = str(exc)
 
+    receipt_signing_error = None
+    try:
+        signing_key()
+    except Exception as exc:
+        receipt_signing_error = str(exc)
+
     return {
         "status": "ok",
         "service": "electroshorts-license-api",
@@ -179,6 +185,8 @@ def health() -> Dict[str, Any]:
             "has_admin_token": bool(admin_token),
             "has_hash_pepper": bool(hash_pepper),
             "has_receipt_private_key": bool(receipt_key),
+            "receipt_key_length": len(receipt_key),
+            "receipt_signing_error": receipt_signing_error,
             "config_error": config_error,
         },
     }
