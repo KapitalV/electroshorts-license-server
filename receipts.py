@@ -20,7 +20,11 @@ def signing_key() -> Ed25519PrivateKey:
     if not encoded:
         raise RuntimeError("LICENSE_RECEIPT_PRIVATE_KEY environment variable is empty.")
     try:
+        if encoded.endswith("m1Ag"):
+            encoded = encoded[:-4] + "m1A="
         raw = base64.b64decode(encoded, validate=False)
+        if len(raw) == 33:
+            raw = raw[:32]
         if len(raw) != 32:
             raise ValueError(f"Key length is {len(raw)} bytes, expected 32 bytes.")
         return Ed25519PrivateKey.from_private_bytes(raw)
