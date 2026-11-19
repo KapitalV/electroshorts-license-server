@@ -16,11 +16,25 @@ from typing import Any, Dict, Optional
 
 from fastapi import FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
-from backend.version import APP_VERSION
+try:
+    from .version import APP_VERSION
+except ImportError:
+    try:
+        from version import APP_VERSION
+    except ImportError:
+        try:
+            from backend.version import APP_VERSION
+        except ImportError:
+            APP_VERSION = "1.0.0"
 
-from .key_utils import InvalidLicenseKey, SHARED_LICENSE_KEY, generate_license_key, hash_license_key, key_last4, normalize_license_key
-from .supabase_client import SupabaseError, SupabaseLicenseRepository
-from .receipts import signing_key, sign_receipt
+try:
+    from .key_utils import InvalidLicenseKey, SHARED_LICENSE_KEY, generate_license_key, hash_license_key, key_last4, normalize_license_key
+    from .supabase_client import SupabaseError, SupabaseLicenseRepository
+    from .receipts import signing_key, sign_receipt
+except ImportError:
+    from key_utils import InvalidLicenseKey, SHARED_LICENSE_KEY, generate_license_key, hash_license_key, key_last4, normalize_license_key
+    from supabase_client import SupabaseError, SupabaseLicenseRepository
+    from receipts import signing_key, sign_receipt
 
 
 app = FastAPI(title="ElectroShorts License API", version=APP_VERSION, docs_url=None, redoc_url=None, openapi_url=None)
@@ -54,8 +68,19 @@ def _admin_guard(authorization: Optional[str], x_admin_token: Optional[str]) -> 
 
 
 def _request_context(request: Request) -> Dict[str, str]:
+    import ipaddress
+    client_ip = ""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        client_ip = forwarded.split(",")[0].strip()
+    elif request.client and request.client.host:
+        client_ip = request.client.host
+    try:
+        ipaddress.ip_address(client_ip)
+    except ValueError:
+        client_ip = "127.0.0.1"
     return {
-        "ip": request.client.host if request.client else "",
+        "ip": client_ip,
         "user_agent": request.headers.get("user-agent", "")[:500],
     }
 

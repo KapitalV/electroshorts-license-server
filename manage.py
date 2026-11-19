@@ -8,7 +8,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .supabase_client import SupabaseError, SupabaseLicenseRepository
+try:
+    from .supabase_client import SupabaseError, SupabaseLicenseRepository
+except ImportError:
+    from supabase_client import SupabaseError, SupabaseLicenseRepository
 
 DISABLED_SHARED_MESSAGE = "Public shared-license provisioning is disabled. Issue unique random customer keys through the admin-authenticated /v1/licenses/generate endpoint."
 
